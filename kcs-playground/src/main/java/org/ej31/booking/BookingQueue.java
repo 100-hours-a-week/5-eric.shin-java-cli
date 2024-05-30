@@ -4,18 +4,26 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class BookingQueue {
-    private static BlockingQueue<Booking> queue = new LinkedBlockingQueue<>();
+    private static BlockingQueue<Booking> bookingQueue = new LinkedBlockingQueue<>();
+    private static BlockingQueue<Booking> cancelQueue = new LinkedBlockingQueue<>();
 
     public static void addBooking(Booking booking) throws InterruptedException {
-        queue.put(booking);
+        bookingQueue.put(booking);
     }
 
     public static Booking getNextBooking() throws InterruptedException {
-        return queue.take();
+        return bookingQueue.take();
     }
 
     public static boolean isEmpty() {
-        return queue.isEmpty();
+        return bookingQueue.isEmpty();
+    }
+
+    public static void addCancellation(Booking booking) throws InterruptedException {
+        cancelQueue.put(booking);
+    }
+
+    public static Booking getNextCancellation() throws InterruptedException {
+        return cancelQueue.take();
     }
 }
-

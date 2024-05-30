@@ -29,7 +29,9 @@ public class Booking {
     public Dog getDog() {
         return dog;
     }
-
+    public Groomer getGroomer() {
+        return groomer;
+    }
     public LocalDateTime getBookingTime() {
         return bookingTime;
     }

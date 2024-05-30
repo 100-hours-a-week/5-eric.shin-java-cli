@@ -16,7 +16,6 @@ public class BookingManagerThread extends Thread {
                     printedNoBookingsMessage = false; // Reset the flag after processing a booking
                 } else {
                     if (!printedNoBookingsMessage) {
-                        System.out.println("No bookings in queue. Waiting for new bookings...");
                         printedNoBookingsMessage = true; // Set the flag to true after printing the message
                     }
                     Thread.sleep(1000); // Wait before checking the queue again
