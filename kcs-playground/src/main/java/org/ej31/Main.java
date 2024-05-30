@@ -2,7 +2,9 @@ package org.ej31;
 
 import org.ej31.animal.Dog;
 import org.ej31.booking.Booking;
+import org.ej31.booking.BookingConfirmThread;
 import org.ej31.booking.BookingManagerThread;
+import org.ej31.booking.BookingQueue;
 import org.ej31.person.DogOwner;
 import org.ej31.person.Groomer;
 
@@ -15,6 +17,9 @@ public class Main {
 
         BookingManagerThread bookingManagerThread = new BookingManagerThread();
         bookingManagerThread.start();
+
+        BookingConfirmThread bookingConfirmThread = new BookingConfirmThread();
+        bookingConfirmThread.start();
 
         Groomer[] groomers = {
                 new Groomer("Elpeo", "Hair trimming", 20),
@@ -36,41 +41,48 @@ public class Main {
             double totalCost = DogOwner.calculateCost(selectedGroomer, myDog);
             System.out.println("\nGrooming Cost: $" + totalCost);
 
-            while (true) {
-                try {
-                    System.out.println("\nWould you like to book the grooming service? (Y/N)");
-                    String bookingResponse = scanner.next().trim().toUpperCase();
+            System.out.println("\nWould you like to book the grooming service? (Y/N)");
+            String bookingResponse = scanner.next().trim().toUpperCase();
 
-                    if (bookingResponse.equals("Y")) {
-                        new Booking(dogOwner, selectedGroomer, myDog, totalCost);
-                        System.out.println("Grooming service has been successfully booked!");
-                        break;
-                    } else if (bookingResponse.equals("N")) {
-                        System.out.println("Grooming service booking has been cancelled.");
-                        break;
-                    } else {
-                        System.out.println("Invalid input. Please enter Y or N.");
-                    }
-                } catch (InputMismatchException e) {
-                    scanner.next(); // Clear the invalid input
+            Booking booking = null;
+            if (bookingResponse.equals("Y")) {
+                try {
+                    booking = new Booking(dogOwner, selectedGroomer, myDog, totalCost);
+                    BookingQueue.addBooking(booking);
+                    System.out.println("Grooming service has been successfully booked!");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
+            } else if (bookingResponse.equals("N")) {
+                System.out.println("Grooming service booking has been cancelled.");
+                selectedGroomer.setBooked(false);
+            } else {
+                System.out.println("Invalid input. Please enter Y or N.");
+                selectedGroomer.setBooked(false);
             }
-            while (true) {
-                try {
-                    System.out.println("\nWould you like to see booking information? (Y/N)");
-                    String viewBookingsResponse = scanner.next().trim().toUpperCase();
 
-                    if (viewBookingsResponse.equals("Y")) {
-                        Booking.displayBookings();
-                        break;
-                    } else if (viewBookingsResponse.equals("N")) {
-                        System.out.println("Thank you for using our Grooming Service!");
-                        break;
-                    } else {
-                        System.out.println("Invalid input. Please enter Y or N.");
+            System.out.println("\nWould you like to see booking information? (Y/N)");
+            String viewBookingsResponse = scanner.next().trim().toUpperCase();
+
+            if (viewBookingsResponse.equals("Y")) {
+                Booking.displayBookings();
+            } else if (viewBookingsResponse.equals("N")) {
+                System.out.println("Thank you for using our Grooming Service!");
+            } else {
+                System.out.println("Invalid input. Please enter Y or N.");
+            }
+
+            if (booking != null) {
+                System.out.println("Would you like to cancel this booking? (Y/N)");
+                String cancelResponse = scanner.next().trim().toUpperCase();
+
+                if (cancelResponse.equals("Y")) {
+                    try {
+                        BookingQueue.addCancellation(booking);
+                        System.out.println("Cancellation request has been submitted.");
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
-                } catch (InputMismatchException e) {
-                    scanner.next(); // Clear the invalid input
                 }
             }
 
@@ -80,12 +92,14 @@ public class Main {
             if (continueResponse.equals("E")) {
                 System.out.println("Thank you for using our Grooming Service!");
                 bookingManagerThread.stopRunning();
+                bookingConfirmThread.stopRunning();
                 break;
             }
         }
         scanner.close();
     }
 }
+
 
 
 
